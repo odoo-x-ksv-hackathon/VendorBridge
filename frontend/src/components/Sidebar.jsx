@@ -10,9 +10,9 @@ const navItems = [
   { label: 'Vendors', icon: Users, path: '/vendors' },
   { label: "RFQ's", icon: FileText, path: '/rfqs' },
   { label: 'Quotations', icon: ClipboardList, path: '/quotations' },
-  { label: 'Approvals', icon: CheckSquare, path: null },
-  { label: 'Purchase Orders', icon: ShoppingCart, path: null },
-  { label: 'Invoices', icon: Receipt, path: null },
+  { label: 'Approvals', icon: CheckSquare, path: '/approvals' },
+  { label: 'Purchase Orders', icon: ShoppingCart, path: '/purchase-orders' },
+  { label: 'Invoices', icon: Receipt, path: '/invoices' },
   { label: 'Reports', icon: BarChart2, path: null },
   { label: 'Activity', icon: Activity, path: null },
 ];

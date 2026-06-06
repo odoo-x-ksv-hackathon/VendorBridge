@@ -1,17 +1,19 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ProcurementDashboard from './pages/ProcurementDashboard';
 import VendorsPage from './pages/vendors';
 import RFQPage from './pages/RfqPage';
-import VendorDashboard from './pages/VendorDashboard';
-import VendorRFQsPage from './pages/VendorRFQsPage';
 import QuotationsPage from './pages/QuotationsPage';
 import QuotationComparisonPage from './pages/QuotationComparisonPage';
 import QuotationApprovalPage from './pages/QuotationApprovalPage';
 import PurchaseOrderInvoicePage from './pages/PurchaseOrderInvoicePage';
+import ApprovalsListPage from './pages/ApprovalsListPage';
+import PurchaseOrdersListPage from './pages/PurchaseOrdersListPage';
+import InvoicesListPage from './pages/InvoicesListPage';
+import VendorDashboard from './pages/VendorDashboard';
+import VendorRFQsPage from './pages/VendorRFQsPage';
 
 function RoleRedirect() {
   const { user, loading } = useAuth();
@@ -44,78 +46,19 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/procurement-dashboard"
-            element={
-              <PrivateRoute>
-                <ProcurementDashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/vendors"
-            element={
-              <PrivateRoute>
-                <VendorsPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/rfqs"
-            element={
-              <PrivateRoute>
-                <RFQPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/quotations/:rfqId/submit"
-            element={
-              <PrivateRoute>
-                <SubmitQuotationPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/rfqs/:rfqId/comparison"
-            element={
-              <PrivateRoute>
-                <QuotationComparisonPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/quotations/:quotationId/approval"
-            element={
-              <PrivateRoute>
-                <QuotationApprovalPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/invoices/:invoiceId"
-            element={
-              <PrivateRoute>
-                <PurchaseOrderInvoicePage />
-              </PrivateRoute>
-            }
-          />
           <Route path="/" element={<RoleRedirect />} />
 
           {/* Buyer routes */}
           <Route path="/procurement-dashboard" element={<BuyerOnly><ProcurementDashboard /></BuyerOnly>} />
           <Route path="/vendors" element={<BuyerOnly><VendorsPage /></BuyerOnly>} />
           <Route path="/rfqs" element={<BuyerOnly><RFQPage /></BuyerOnly>} />
-          <Route path="/quotations" element={<BuyerOnly><QuotationsPage /></BuyerOnly>} />
           <Route path="/rfqs/:rfqId/comparison" element={<BuyerOnly><QuotationComparisonPage /></BuyerOnly>} />
+          <Route path="/quotations" element={<BuyerOnly><QuotationsPage /></BuyerOnly>} />
+          <Route path="/approvals" element={<BuyerOnly><ApprovalsListPage /></BuyerOnly>} />
+          <Route path="/approvals/:quotationId" element={<BuyerOnly><QuotationApprovalPage /></BuyerOnly>} />
+          <Route path="/purchase-orders" element={<BuyerOnly><PurchaseOrdersListPage /></BuyerOnly>} />
+          <Route path="/purchase-orders/:poId" element={<BuyerOnly><PurchaseOrderInvoicePage /></BuyerOnly>} />
+          <Route path="/invoices" element={<BuyerOnly><InvoicesListPage /></BuyerOnly>} />
 
           {/* Vendor routes */}
           <Route path="/vendor-dashboard" element={<VendorOnly><VendorDashboard /></VendorOnly>} />
