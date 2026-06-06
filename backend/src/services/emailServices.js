@@ -182,12 +182,44 @@ export const sendVendorWelcomeEmail = async (vendorEmail, contactName, orgName, 
     console.error('Error sending vendor welcome email:', error);
   }
 };
+export const sendQuotationStatusEmail = async (vendorEmail, rfqTitle, status, remarks) => {
+  try {
+    const isApproved = status === 'APPROVED';
+    const color = isApproved ? '#059669' : '#dc2626'; // Green for approval, Red for rejection/revision
 
+    const mailOptions = {
+      from: process.env.EMAIL_FROM || 'no-reply@vendorbridge.local',
+      to: vendorEmail,
+      subject: `Quotation Update: ${rfqTitle} - ${status}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px;">
+          <h2 style="color: ${color};">Quotation Status: ${status}</h2>
+          <p>The buyer has reviewed your quotation for the RFQ: <strong>${rfqTitle}</strong>.</p>
+          
+          <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin-top: 0;"><strong>Manager Remarks:</strong></p>
+            <p><em>"${remarks || 'No additional remarks provided.'}"</em></p>
+          </div>
+          
+          <p>${isApproved ? 'A Purchase Order will be generated shortly.' : 'Please review the remarks and submit a revised quotation if necessary.'}</p>
+        </div>
+      `,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`Quotation status email sent to ${vendorEmail}:`, info.messageId);
+    return info;
+  } catch (error) {
+    console.error('Error sending quotation status email:', error);
+  }
+};
 
 export default {
   sendWelcomeEmail,
   sendPasswordResetEmail,
   sendRfqInvitationEmail,
   sendInvoiceEmail,
-  sendVendorWelcomeEmail
+  sendVendorWelcomeEmail,
+  sendQuotationStatusEmail
+  
 };

@@ -6,6 +6,8 @@ import rateLimit from 'express-rate-limit';
 import authRouter from './routes/auth.js';
 import vendorRouter from './routes/vendor.js';
 import rfqRouter from './routes/rfq.js';
+import approvalRouter from './routes/approval.js';
+import quotationRoter from './routes/quotation.js';
 const app = express();
 
 const authLimiter = rateLimit({
@@ -23,4 +25,6 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/api/vendors', vendorRouter);
 app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/rfqs', rfqRouter);
+app.use('/api/approvals', approvalRouter);
+app.use('/api/quotations', quotationRoter);
 export default app;
