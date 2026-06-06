@@ -8,6 +8,7 @@ import vendorRouter from './routes/vendor.js';
 import rfqRouter from './routes/rfq.js';
 import approvalRouter from './routes/approval.js';
 import quotationRoter from './routes/quotation.js';
+import poRouter from './routes/po.js';
 const app = express();
 
 const authLimiter = rateLimit({
@@ -27,4 +28,5 @@ app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/rfqs', rfqRouter);
 app.use('/api/approvals', approvalRouter);
 app.use('/api/quotations', quotationRoter);
+app.use('/api/pos', poRouter);
 export default app;

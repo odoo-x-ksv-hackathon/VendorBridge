@@ -24,7 +24,11 @@ export const submitQuotation = async (req, res) => {
 
     for (const item of items) {
       const originalRfqItem = rfqItems.find(r => r.id === item.rfqItemId);
-      if (!originalRfqItem) continue;
+      if (!originalRfqItem) {
+        return res.status(400).json({ 
+          error: `Could not find an RFQ Item with the ID: ${item.rfqItemId}. Make sure you are using the rfqItemId, not the quotation item ID!` 
+        });
+      }
 
       const subtotal = Number(item.unitPrice) * Number(originalRfqItem.quantity);
       totalAmount += subtotal;
@@ -92,7 +96,11 @@ export const reviseQuotation = async (req, res) => {
 
     for (const item of items) {
       const originalRfqItem = rfqItems.find(r => r.id === item.rfqItemId);
-      if (!originalRfqItem) continue;
+      if (!originalRfqItem) {
+        return res.status(400).json({ 
+          error: `Could not find an RFQ Item with the ID: ${item.rfqItemId}. Make sure you are using the rfqItemId, not the quotation item ID!` 
+        });
+      }
 
       const subtotal = Number(item.unitPrice) * Number(originalRfqItem.quantity);
       totalAmount += subtotal;
