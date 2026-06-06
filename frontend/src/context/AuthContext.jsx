@@ -16,12 +16,17 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const res = await api.post('/auth/login', { email, password });
-    setUser(res.data);
+    await api.post('/auth/login', { email, password });
+    const me = await api.get('/auth/me');
+    setUser(me.data);
   };
 
-  const register = async (email, password) => {
-    const res = await api.post('/auth/register', { email, password });
+  /**
+   * register now accepts the full ORG-CREATION payload:
+   * { orgName, type, gstNumber, userName, email, password }
+   */
+  const register = async (payload) => {
+    const res = await api.post('/auth/register', payload);
     setUser(res.data);
   };
 
