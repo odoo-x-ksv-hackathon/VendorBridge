@@ -10,6 +10,7 @@ import approvalRouter from './routes/approval.js';
 import quotationRoter from './routes/quotation.js';
 import poRouter from './routes/po.js';
 import invoiceRouter from './routes/invoice.js';
+import dashboardRouter from './routes/dashboard.js';
 
 const app = express();
 
@@ -32,5 +33,6 @@ app.use('/api/approvals', approvalRouter);
 app.use('/api/quotations', quotationRoter);
 app.use('/api/pos', poRouter);
 app.use('/api/invoices', invoiceRouter);
+app.use('/api/dashboard', dashboardRouter);
 
 export default app;
