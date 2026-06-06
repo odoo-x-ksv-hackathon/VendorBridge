@@ -8,11 +8,279 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum OrgType {
+  BUYER
+  VENDOR
+}
+
+enum UserRole {
+  ADMIN
+  PROCUREMENT_OFFICER
+  MANAGER
+  VENDOR
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
+enum RfqStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  CANCELLED
+}
+
+enum RfqVendorInviteStatus {
+  INVITED
+  VIEWED
+  RESPONDED
+  DECLINED
+}
+
+enum QuotationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  SELECTED
+  REJECTED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PoStatus {
+  DRAFT
+  ISSUED
+  ACKNOWLEDGED
+  COMPLETED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  CANCELLED
+}
+
+model Organization {
+  id         String   @id @default(cuid())
+  name       String
+  gstNumber  String?
+  phone      String?
+  address    String?
+  type       OrgType
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  users          User[]
+  vendor         Vendor?
+  rfqs           Rfq[]
+  purchaseOrders PurchaseOrder[]
+  activityLogs   ActivityLog[]
+}
+
 model User {
+  id            String       @id @default(cuid())
+  orgId         String
+  name          String
+  email         String       @unique
+  passwordHash  String
+  role          UserRole
+  inviteToken   String?      @unique
+  inviteStatus  InviteStatus @default(PENDING)
+  refreshToken  String?
+  isActive      Boolean      @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime     @default(now())
+
+  org            Organization    @relation(fields: [orgId], references: [id])
+  rfqs           Rfq[]
+  quotations     Quotation[]
+  approvals      Approval[]
+  purchaseOrders PurchaseOrder[]
+  activityLogs   ActivityLog[]
+  notifications  Notification[]
+}
+
+model Vendor {
+  id        String   @id @default(cuid())
+  orgId     String   @unique
+  category  String?
+  rating    Float    @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  org            Organization    @relation(fields: [orgId], references: [id])
+  rfqVendors     RfqVendor[]
+  quotations     Quotation[]
+  purchaseOrders PurchaseOrder[]
+}
+
+model Rfq {
+  id          String    @id @default(cuid())
+  createdById String
+  orgId       String
+  title       String
+  description String?
+  deadline    DateTime?
+  status      RfqStatus @default(DRAFT)
+  createdAt   DateTime  @default(now())
+
+  createdBy   User           @relation(fields: [createdById], references: [id])
+  org         Organization   @relation(fields: [orgId], references: [id])
+  items       RfqItem[]
+  vendors     RfqVendor[]
+  attachments RfqAttachment[]
+  quotations  Quotation[]
+}
+
+model RfqItem {
+  id          String  @id @default(cuid())
+  rfqId       String
+  productName String
+  unit        String?
+  quantity    Decimal
+  notes       String?
+
+  rfq            Rfq             @relation(fields: [rfqId], references: [id])
+  quotationItems QuotationItem[]
+}
+
+model RfqVendor {
+  rfqId       String
+  vendorId    String
+  inviteStatus RfqVendorInviteStatus @default(INVITED)
+  invitedAt   DateTime              @default(now())
+  respondedAt DateTime?
+
+  rfq    Rfq    @relation(fields: [rfqId], references: [id])
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+
+  @@id([rfqId, vendorId])
+}
+
+model RfqAttachment {
+  id         String   @id @default(cuid())
+  rfqId      String
+  fileUrl    String
+  filename   String
+  uploadedAt DateTime @default(now())
+
+  rfq Rfq @relation(fields: [rfqId], references: [id])
+}
+
+model Quotation {
+  id            String          @id @default(cuid())
+  rfqId         String
+  vendorId      String
+  submittedById String
+  totalAmount   Decimal
+  deliveryDays  Int?
+  notes         String?
+  status        QuotationStatus @default(DRAFT)
+  isSelected    Boolean         @default(false)
+  submittedAt   DateTime?
+  updatedAt     DateTime        @updatedAt
+
+  rfq           Rfq             @relation(fields: [rfqId], references: [id])
+  vendor        Vendor          @relation(fields: [vendorId], references: [id])
+  submittedBy   User            @relation(fields: [submittedById], references: [id])
+  items         QuotationItem[]
+  approvals     Approval[]
+  purchaseOrder PurchaseOrder?
+}
+
+model QuotationItem {
+  id           String  @id @default(cuid())
+  quotationId  String
+  rfqItemId    String
+  unitPrice    Decimal
+  quantity     Decimal
+  subtotal     Decimal
+
+  quotation Quotation @relation(fields: [quotationId], references: [id])
+  rfqItem   RfqItem   @relation(fields: [rfqItemId], references: [id])
+}
+
+model Approval {
+  id           String         @id @default(cuid())
+  quotationId  String
+  approverId   String
+  status       ApprovalStatus @default(PENDING)
+  remarks      String?
+  actionedAt   DateTime?
+
+  quotation Quotation @relation(fields: [quotationId], references: [id])
+  approver  User      @relation(fields: [approverId], references: [id])
+}
+
+model PurchaseOrder {
   id           String   @id @default(cuid())
-  email        String   @unique
-  password     String
-  refreshToken String?
+  quotationId  String   @unique
+  vendorId     String
+  createdById  String
+  orgId        String
+  poNumber     String   @unique
+  subtotal     Decimal
+  taxRate      Decimal  @default(0)
+  taxAmount    Decimal  @default(0)
+  totalAmount  Decimal
+  status       PoStatus @default(DRAFT)
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+
+  quotation   Quotation    @relation(fields: [quotationId], references: [id])
+  vendor      Vendor       @relation(fields: [vendorId], references: [id])
+  createdBy   User         @relation(fields: [createdById], references: [id])
+  org         Organization @relation(fields: [orgId], references: [id])
+  invoice     Invoice?
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  poId          String        @unique
+  invoiceNumber String        @unique
+  subtotal      Decimal
+  taxAmount     Decimal
+  totalAmount   Decimal
+  status        InvoiceStatus @default(DRAFT)
+  emailed       Boolean       @default(false)
+  emailSentTo   String?
+  generatedAt   DateTime      @default(now())
+  emailedAt     DateTime?
+
+  po PurchaseOrder @relation(fields: [poId], references: [id])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String
+  orgId      String
+  entityType String
+  entityId   String
+  action     String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  user User         @relation(fields: [userId], references: [id])
+  org  Organization @relation(fields: [orgId], references: [id])
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  userId     String
+  title      String
+  body       String?
+  isRead     Boolean  @default(false)
+  entityType String?
+  entityId   String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }
