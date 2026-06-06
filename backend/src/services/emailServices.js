@@ -146,7 +146,7 @@ export const sendInvoiceEmail = async (targetEmail, invoiceNumber, poNumber, tot
     console.error('Error sending invoice email:', error);
   }
 };
-const sendVendorWelcomeEmail = async (vendorEmail, contactName, orgName, tempPassword) => {
+export const sendVendorWelcomeEmail = async (vendorEmail, contactName, orgName, tempPassword) => {
   try {
     const mailOptions = {
       from: process.env.EMAIL_FROM || 'no-reply@vendorbridge.local',
