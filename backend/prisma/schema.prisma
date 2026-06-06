@@ -81,6 +81,7 @@ model Organization {
 
   users          User[]
   vendor         Vendor?
+  addedVendors   Vendor[]        @relation("VendorAddedBy")
   rfqs           Rfq[]
   purchaseOrders PurchaseOrder[]
   activityLogs   ActivityLog[]
@@ -110,14 +111,16 @@ model User {
 }
 
 model Vendor {
-  id        String   @id @default(cuid())
-  orgId     String   @unique
-  category  String?
-  rating    Float    @default(0)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  orgId          String   @unique
+  addedByOrgId   String?
+  category       String?
+  rating         Float    @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
 
   org            Organization    @relation(fields: [orgId], references: [id])
+  addedByOrg     Organization?   @relation("VendorAddedBy", fields: [addedByOrgId], references: [id])
   rfqVendors     RfqVendor[]
   quotations     Quotation[]
   purchaseOrders PurchaseOrder[]

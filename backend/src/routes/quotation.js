@@ -32,4 +32,25 @@ router.get(
   getQuotationsByRfq
 );
 
+// GET /api/quotations/my/:rfqId - Vendor fetches their own quote for an RFQ
+router.get(
+  '/my/:rfqId',
+  authenticate,
+  authorizeRoles('VENDOR'),
+  async (req, res) => {
+    try {
+      const { prisma } = await import('../db.js');
+      const vendor = await prisma.vendor.findUnique({ where: { orgId: req.user.orgId } });
+      if (!vendor) return res.status(404).json({ error: 'Vendor profile not found' });
+      const quotation = await prisma.quotation.findFirst({
+        where: { rfqId: req.params.rfqId, vendorId: vendor.id },
+        include: { items: true },
+      });
+      res.json(quotation ?? null);
+    } catch (err) {
+      res.status(500).json({ error: 'Failed to fetch quotation' });
+    }
+  }
+);
+
 export default router;
