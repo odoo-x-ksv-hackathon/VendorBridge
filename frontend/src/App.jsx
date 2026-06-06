@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import ProcurementDashboard from './pages/procurementDashboard';
 import VendorsPage from './pages/vendors';
+import RFQPage from './pages/RfqPage';
 
 function App() {
   return (
@@ -35,6 +36,14 @@ function App() {
             element={
               <PrivateRoute>
                 <VendorsPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/rfqs"
+            element={
+              <PrivateRoute>
+                <RFQPage />
               </PrivateRoute>
             }
           />
