@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import Sidebar from '../components/Sidebar';
-import { useNavigate } from 'react-router-dom';
 
 const statusConfig = {
   Active: { color: '#10b981', bg: '#d1fae5', dot: '#10b981' },
@@ -99,7 +98,6 @@ function SectionTable({ title, headers, rows, empty }) {
 }
 
 export default function VendorsPage() {
-  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
   const [search, setSearch] = useState('');
