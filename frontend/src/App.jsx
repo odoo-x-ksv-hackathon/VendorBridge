@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard';
 import ProcurementDashboard from './pages/procurementDashboard';
 import VendorsPage from './pages/vendors';
 import RFQPage from './pages/RfqPage';
+import SubmitQuotationPage from './pages/SubmitQuotationPage';
+import QuotationComparisonPage from './pages/QuotationComparisonPage';
 
 function App() {
   return (
@@ -44,6 +46,22 @@ function App() {
             element={
               <PrivateRoute>
                 <RFQPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/quotations/:rfqId/submit"
+            element={
+              <PrivateRoute>
+                <SubmitQuotationPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/rfqs/:rfqId/comparison"
+            element={
+              <PrivateRoute>
+                <QuotationComparisonPage />
               </PrivateRoute>
             }
           />
