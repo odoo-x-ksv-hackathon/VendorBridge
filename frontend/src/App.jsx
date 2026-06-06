@@ -9,6 +9,8 @@ import VendorsPage from './pages/vendors';
 import RFQPage from './pages/RfqPage';
 import SubmitQuotationPage from './pages/SubmitQuotationPage';
 import QuotationComparisonPage from './pages/QuotationComparisonPage';
+import QuotationApprovalPage from './pages/QuotationApprovalPage';
+import PurchaseOrderInvoicePage from './pages/PurchaseOrderInvoicePage';
 
 function App() {
   return (
@@ -62,6 +64,22 @@ function App() {
             element={
               <PrivateRoute>
                 <QuotationComparisonPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/quotations/:quotationId/approval"
+            element={
+              <PrivateRoute>
+                <QuotationApprovalPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/invoices/:invoiceId"
+            element={
+              <PrivateRoute>
+                <PurchaseOrderInvoicePage />
               </PrivateRoute>
             }
           />
