@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../lib/axios';
 import Sidebar from '../components/Sidebar';
 import {
@@ -30,6 +31,7 @@ function StatusBadge({ status }) {
 
 /* ─── RFQ List ─────────────────────────────────────────────────────────── */
 function RFQList({ onCreateClick }) {
+  const navigate = useNavigate();
   const [rfqs, setRfqs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -225,7 +227,7 @@ function RFQList({ onCreateClick }) {
                         <td className="px-3 py-3.5"><StatusBadge status={rfq.status} /></td>
                         <td className="px-3 py-3.5 pr-5">
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => handleView(rfq.id)}
+                            <button onClick={() => navigate(`/rfqs/${rfq.id}/comparison`)}
                               className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="View">
                               <Eye size={13} />
                             </button>
@@ -305,7 +307,7 @@ function RFQList({ onCreateClick }) {
                         <div className="flex items-center gap-1 text-[10px] text-gray-400">
                           <Building2 size={10} />{vendorCount} vendor{vendorCount !== 1 ? 's' : ''}
                         </div>
-                        <button onClick={() => handleView(rfq.id)}
+                        <button onClick={() => navigate(`/rfqs/${rfq.id}/comparison`)}
                           className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all opacity-0 group-hover:opacity-100">
                           <Eye size={12} />
                         </button>

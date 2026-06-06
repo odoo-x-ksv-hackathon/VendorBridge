@@ -12,6 +12,7 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import Sidebar from '../components/Sidebar';
+import AddMemberModal from '../components/AddMemberModal';
 import api from '../lib/axios';
 
 // initial placeholders will be replaced by API data
@@ -37,6 +38,7 @@ export default function ProcurementDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showAddMember, setShowAddMember] = useState(false);
   const [stats, setStats] = useState(defaultStats);
   const [pos, setPos] = useState(recentPOs);
   const [spend, setSpend] = useState(spendingData);
@@ -84,6 +86,8 @@ export default function ProcurementDashboard() {
       {sidebarOpen && <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />}
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
+      {showAddMember && <AddMemberModal onClose={() => setShowAddMember(false)} />}
+
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Top bar */}
@@ -103,6 +107,14 @@ export default function ProcurementDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowAddMember(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90 active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)' }}
+            >
+              <UserPlus size={13} />
+              Add Member
+            </button>
             <button className="relative p-2 rounded-lg hover:bg-gray-50 transition-colors">
               <Bell size={18} className="text-gray-500" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>

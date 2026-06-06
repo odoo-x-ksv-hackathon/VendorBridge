@@ -38,151 +38,61 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 py-12">
-      {/* Background grid */}
-      <div
-        className="fixed inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            'linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }}
-      />
+    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }} className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md">
+        {/* Brand */}
+        <div className="flex items-center gap-2 mb-8 justify-center">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold"
+            style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)' }}>VB</div>
+          <span className="font-bold text-gray-900 text-sm tracking-tight">VendorBridge</span>
+        </div>
 
-      <div className="relative w-full max-w-lg">
-        {/* Glow accent */}
-        <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative bg-slate-900 border border-slate-700/60 rounded-2xl shadow-2xl overflow-hidden">
-          {/* Header stripe */}
-          <div className="h-1 bg-linear-to-r from-emerald-400 via-teal-400 to-cyan-400" />
-
-          <div className="px-8 pt-8 pb-10">
-            {/* Brand */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" />
-                <span
-                  className="text-xs font-semibold tracking-[0.25em] text-emerald-400 uppercase"
-                  style={{ fontFamily: "'DM Mono', monospace" }}
-                >
-                  VendorBridge
-                </span>
-              </div>
-              <h1
-                className="text-3xl font-bold text-white mt-2"
-                style={{ fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em' }}
-              >
-                Create Organisation
-              </h1>
-              <p className="text-slate-400 text-sm mt-1">
-                Set up your organisation account to get started.
-              </p>
-            </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="h-1" style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)' }} />
+          <div className="px-7 pt-7 pb-8">
+            <h1 className="text-xl font-bold text-gray-900 leading-tight">Create Organisation</h1>
+            <p className="text-xs text-gray-500 mt-1">Set up your organisation account to get started.</p>
 
             {error && (
-              <div className="mb-5 flex items-start gap-3 bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3">
-                <span className="text-red-400 text-lg leading-none mt-0.5">✕</span>
-                <p className="text-red-300 text-sm">{error}</p>
+              <div className="mt-4 px-3 py-2.5 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600">
+                {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Org Name + Type row */}
-              <div className="grid grid-cols-2 gap-4">
-                <Field
-                  label="Organisation Name"
-                  name="orgName"
-                  placeholder="Stark Industries"
-                  value={form.orgName}
-                  onChange={handleChange}
-                  required
-                />
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Organisation Name" name="orgName" placeholder="Stark Industries" value={form.orgName} onChange={handleChange} required />
                 <div>
-                  <label
-                    className="block text-xs font-medium text-slate-400 mb-1.5 tracking-wide uppercase"
-                    style={{ fontFamily: "'DM Mono', monospace" }}
-                  >
-                    Type
-                  </label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Type</label>
                   <select
                     name="type"
                     value={form.type}
                     onChange={handleChange}
-                    className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 transition appearance-none cursor-pointer"
-                    style={{ fontFamily: "'Sora', sans-serif" }}
                     required
+                    className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
                   >
-                    {ORG_TYPES.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
+                    {ORG_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
               </div>
-
-              {/* GST Number */}
-              <Field
-                label="GST Number"
-                name="gstNumber"
-                placeholder="22AAAAA0000A1Z5"
-                value={form.gstNumber}
-                onChange={handleChange}
-                required
-              />
-
-              {/* User Name */}
-              <Field
-                label="Your Name"
-                name="userName"
-                placeholder="Tony Stark"
-                value={form.userName}
-                onChange={handleChange}
-                required
-              />
-
-              {/* Email */}
-              <Field
-                label="Email"
-                name="email"
-                type="email"
-                placeholder="tony@stark.com"
-                value={form.email}
-                onChange={handleChange}
-                required
-              />
-
-              {/* Password */}
-              <Field
-                label="Password"
-                name="password"
-                type="password"
-                placeholder="••••••••••"
-                value={form.password}
-                onChange={handleChange}
-                required
-              />
+              <Field label="GST Number" name="gstNumber" placeholder="22AAAAA0000A1Z5" value={form.gstNumber} onChange={handleChange} required />
+              <Field label="Your Name" name="userName" placeholder="Tony Stark" value={form.userName} onChange={handleChange} required />
+              <Field label="Email" name="email" type="email" placeholder="tony@stark.com" value={form.email} onChange={handleChange} required />
+              <Field label="Password" name="password" type="password" placeholder="••••••••••" value={form.password} onChange={handleChange} required />
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-semibold rounded-lg py-2.5 text-sm transition-all duration-200 tracking-wide"
-                style={{ fontFamily: "'Sora', sans-serif" }}
+                className="w-full py-2.5 text-sm font-semibold text-white rounded-lg disabled:opacity-60 transition-all hover:opacity-90 active:scale-95"
+                style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)' }}
               >
                 {loading ? 'Creating Organisation…' : 'Create Organisation'}
               </button>
             </form>
 
-            <p
-              className="mt-6 text-center text-slate-500 text-sm"
-              style={{ fontFamily: "'Sora', sans-serif" }}
-            >
+            <p className="mt-5 text-center text-xs text-gray-500">
               Already have an account?{' '}
-              <Link
-                to="/login"
-                className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
-              >
+              <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">
                 Sign in
               </Link>
             </p>
@@ -193,15 +103,9 @@ const Register = () => {
   );
 };
 
-/* Small reusable field */
 const Field = ({ label, name, type = 'text', placeholder, value, onChange, required }) => (
   <div>
-    <label
-      className="block text-xs font-medium text-slate-400 mb-1.5 tracking-wide uppercase"
-      style={{ fontFamily: "'DM Mono', monospace" }}
-    >
-      {label}
-    </label>
+    <label className="block text-xs font-semibold text-gray-600 mb-1.5">{label}</label>
     <input
       type={type}
       name={name}
@@ -209,8 +113,7 @@ const Field = ({ label, name, type = 'text', placeholder, value, onChange, requi
       value={value}
       onChange={onChange}
       required={required}
-      className="w-full bg-slate-800 border border-slate-700 text-white placeholder-slate-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 transition"
-      style={{ fontFamily: "'Sora', sans-serif" }}
+      className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
     />
   </div>
 );
