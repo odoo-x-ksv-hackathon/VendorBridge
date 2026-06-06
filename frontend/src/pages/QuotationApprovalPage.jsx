@@ -46,14 +46,12 @@ export default function QuotationApprovalPage() {
   const [chain, setChain] = useState([]);
 
   useEffect(() => {
-    api.get(`/quotations/rfq/${quotationId}`)
+    api.get(`/quotations/${quotationId}`)
       .then(({ data }) => {
-        // data may be an array; find the one matching quotationId
-        const q = Array.isArray(data) ? data.find(q => q.id === quotationId) : data;
-        setQuotation(q ?? null);
-        if (q) {
+        setQuotation(data ?? null);
+        if (data) {
           // Build chain from existing approval records + pending slot for current user
-          const existing = (q.approvals ?? []).map((a, i) => ({
+          const existing = (data.approvals ?? []).map((a, i) => ({
             id: a.id ?? i,
             name: a.approver?.name ?? 'Approver',
             role: a.approver?.role ?? '',
@@ -79,7 +77,7 @@ export default function QuotationApprovalPage() {
       })
       .catch(() => setError('Failed to load quotation.'))
       .finally(() => setLoading(false));
-  }, [quotationId]);
+  }, [quotationId, user]);
 
   const handleAction = async (action) => {
     setSubmitting(true); setSubmitError(null);

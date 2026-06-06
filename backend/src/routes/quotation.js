@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { 
   submitQuotation, 
   reviseQuotation, 
-  getQuotationsByRfq 
+  getQuotationsByRfq,
+  getQuotationById
 } from '../controllers/quotationController.js';
 import { authenticate, authorizeRoles } from '../middleware/auth.js';
 
@@ -22,6 +23,14 @@ router.put(
   authenticate,
   authorizeRoles('VENDOR'),
   reviseQuotation
+);
+
+// GET /api/quotations/:id - Buyer views a single quotation with approvals
+router.get(
+  '/:id',
+  authenticate,
+  authorizeRoles('ADMIN', 'PROCUREMENT_OFFICER', 'MANAGER'),
+  getQuotationById
 );
 
 // GET /api/quotations/rfq/:rfqId - Buyer fetches all quotes for an RFQ

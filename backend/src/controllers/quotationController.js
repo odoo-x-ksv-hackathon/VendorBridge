@@ -156,3 +156,33 @@ export const getQuotationsByRfq = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch quotations' });
   }
 };
+
+// --- 4. Get a Single Quotation By ID ---
+export const getQuotationById = async (req, res) => {
+  try {
+    const quotation = await prisma.quotation.findUnique({
+      where: { id: req.params.id },
+      include: {
+        rfq: {
+          include: {
+            items: true,
+          },
+        },
+        vendor: { include: { org: { select: { name: true, address: true } } } },
+        submittedBy: { select: { id: true, name: true, email: true, role: true } },
+        items: { include: { rfqItem: { select: { productName: true, unit: true } } } },
+        approvals: { include: { approver: { select: { id: true, name: true, role: true } } }, orderBy: { actionedAt: 'asc' } },
+        purchaseOrder: true,
+      },
+    });
+
+    if (!quotation) {
+      return res.status(404).json({ error: 'Quotation not found' });
+    }
+
+    res.json(quotation);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch quotation' });
+  }
+};
