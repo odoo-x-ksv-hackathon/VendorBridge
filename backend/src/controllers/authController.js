@@ -1,7 +1,6 @@
 import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
 import { generateAccessToken, generateRefreshToken, setTokenCookies } from '../lib/token.js';
-
 const prisma = new PrismaClient();
 
 // --- 1. Register Organization & Initial User ---

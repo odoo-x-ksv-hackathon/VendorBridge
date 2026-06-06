@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../db.js'; // Ensure this points to your Prisma client instance
 import { generateAccessToken, generateRefreshToken, setTokenCookies } from '../lib/tokens.js';
 import { authenticate,authorizeRoles } from '../middleware/auth.js';
+import { sendWelcomeEmail, sendPasswordResetEmail } from '../services/emailServices.js';
 
 const router = Router();
 
@@ -46,7 +47,7 @@ router.post('/register', async (req, res) => {
       return { org, user };
     });
 
-    const { user } = result;
+    const { user, org } = result;
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
@@ -57,6 +58,9 @@ router.post('/register', async (req, res) => {
     });
 
     setTokenCookies(res, accessToken, refreshToken);
+    sendWelcomeEmail(user.email, user.name, user.role, org.name).catch(err => 
+      console.error("Non-fatal error: Failed to send welcome email", err)
+    );
     res.status(201).json({ 
       id: user.id, 
       email: user.email, 
@@ -185,38 +189,162 @@ router.get('/me', authenticate, async (req, res) => {
 router.post(
   '/add-member',
   authenticate,
-  authorizeRoles('ADMIN'), // Only Admins can do this
+  authorizeRoles('ADMIN'),
   async (req, res) => {
     const { name, email, password, role } = req.body;
 
     if (!name || !email || !password || !role) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({
+        error: 'Missing required fields',
+      });
     }
 
     try {
-      const existingUser = await prisma.user.findUnique({ where: { email } });
-      if (existingUser) return res.status(409).json({ error: 'Email already in use' });
+      // Check if user already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
 
-      const hashedPassword = await bcrypt.hash(password, 10);
+      if (existingUser) {
+        return res.status(409).json({
+          error: 'Email already in use',
+        });
+      }
 
-      const newUser = await prisma.user.create({
-        data: {
-          orgId: req.user.orgId, // Automatically link to the Admin's Organization
-          name,
-          email,
-          passwordHash: hashedPassword,
-          role, // e.g., 'PROCUREMENT_OFFICER' or 'MANAGER'
+      // Get organization details
+      const organization = await prisma.organization.findUnique({
+        where: {
+          id: req.user.orgId,
+        },
+        select: {
+          id: true,
+          name: true,
         },
       });
 
-      res.status(201).json({ 
+      if (!organization) {
+        return res.status(404).json({
+          error: 'Organization not found',
+        });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user
+      const newUser = await prisma.user.create({
+        data: {
+          orgId: organization.id,
+          name,
+          email,
+          passwordHash: hashedPassword,
+          role,
+        },
+      });
+
+      // Send welcome email (non-blocking)
+      sendWelcomeEmail(
+        newUser.email,
+        newUser.name,
+        newUser.role,
+        organization.name
+      ).catch((err) => {
+        console.error(
+          'Non-fatal error: Failed to send welcome email',
+          err
+        );
+      });
+
+      return res.status(201).json({
         message: 'Team member added successfully',
-        user: { id: newUser.id, email: newUser.email, role: newUser.role }
+        user: {
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          orgId: newUser.orgId,
+        },
       });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Add member error:', err);
+
+      return res.status(500).json({
+        error: 'Internal server error',
+      });
     }
   }
 );
+// --- Forgot Password (Generate Link & Email) ---
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    
+    // Security best practice: Always return generic success so attackers can't guess emails
+    if (!user) {
+      return res.json({ message: 'If the email exists, a reset link has been sent.' });
+    }
+
+    // Generate a 15-minute reset token
+    const resetToken = jwt.sign(
+      { id: user.id },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    // Trigger the email service
+    await sendPasswordResetEmail(user.email, resetToken);
+
+    res.json({ message: 'If the email exists, a reset link has been sent.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// --- Reset Password (Submit New Password) ---
+router.post('/reset-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    return res.status(400).json({ error: 'Token and new password are required' });
+  }
+
+  try {
+    // 1. Verify token
+    const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+    // 2. Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // 3. Update DB
+    await prisma.user.update({
+      where: { id: payload.id },
+      data: { passwordHash: hashedPassword },
+    });
+
+    res.json({ message: 'Password has been reset successfully' });
+  } catch (err) {
+    console.error(err);
+    return res.status(401).json({ error: 'Invalid or expired reset token' });
+  }
+});
+router.post('/logout', authenticate, async (req, res) => {
+  try {
+    // Remove the refresh token from the database
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: { refreshToken: null },
+    });
+  } catch (err) {
+    console.error("Logout error:", err);
+  } finally {
+    // Clear the HTTP-only cookies regardless of DB success
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    res.json({ message: 'Logged out successfully' });
+  }
+});
 export default router;
