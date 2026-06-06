@@ -10,6 +10,8 @@ import VendorDashboard from './pages/VendorDashboard';
 import VendorRFQsPage from './pages/VendorRFQsPage';
 import QuotationsPage from './pages/QuotationsPage';
 import QuotationComparisonPage from './pages/QuotationComparisonPage';
+import QuotationApprovalPage from './pages/QuotationApprovalPage';
+import PurchaseOrderInvoicePage from './pages/PurchaseOrderInvoicePage';
 
 function RoleRedirect() {
   const { user, loading } = useAuth();
@@ -42,6 +44,70 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/procurement-dashboard"
+            element={
+              <PrivateRoute>
+                <ProcurementDashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/vendors"
+            element={
+              <PrivateRoute>
+                <VendorsPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/rfqs"
+            element={
+              <PrivateRoute>
+                <RFQPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/quotations/:rfqId/submit"
+            element={
+              <PrivateRoute>
+                <SubmitQuotationPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/rfqs/:rfqId/comparison"
+            element={
+              <PrivateRoute>
+                <QuotationComparisonPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/quotations/:quotationId/approval"
+            element={
+              <PrivateRoute>
+                <QuotationApprovalPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/invoices/:invoiceId"
+            element={
+              <PrivateRoute>
+                <PurchaseOrderInvoicePage />
+              </PrivateRoute>
+            }
+          />
           <Route path="/" element={<RoleRedirect />} />
 
           {/* Buyer routes */}
