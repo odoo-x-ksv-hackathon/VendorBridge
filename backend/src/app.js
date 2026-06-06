@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import authRouter from './routes/auth.js';
 import vendorRouter from './routes/vendor.js';
-
+import rfqRouter from './routes/rfq.js';
 const app = express();
 
 const authLimiter = rateLimit({
@@ -22,5 +22,5 @@ app.use(cookieParser());
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/api/vendors', vendorRouter);
 app.use('/api/auth', authLimiter, authRouter);
-
+app.use('/api/rfqs', rfqRouter);
 export default app;

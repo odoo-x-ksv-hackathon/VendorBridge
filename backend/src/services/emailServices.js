@@ -183,6 +183,7 @@ export const sendVendorWelcomeEmail = async (vendorEmail, contactName, orgName, 
   }
 };
 
+
 export default {
   sendWelcomeEmail,
   sendPasswordResetEmail,
