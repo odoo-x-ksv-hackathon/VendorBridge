@@ -5,12 +5,14 @@ import { sendRfqInvitationEmail } from '../services/emailServices.js';
 export const createRfq = async (req, res) => {
   const { title, description, deadline, items, vendorIds } = req.body;
 
-  if (!title || !deadline || !items || !items.length) {
+  const parsedItems = typeof items === 'string' ? JSON.parse(items) : items;
+  const parsedVendorIds = typeof vendorIds === 'string' ? JSON.parse(vendorIds) : (vendorIds ?? []);
+
+  if (!title || !deadline || !parsedItems?.length) {
     return res.status(400).json({ error: 'Title, deadline, and at least one item are required' });
   }
 
   try {
-    // 1. Transaction: Create RFQ, Items, and Vendor Invites
     const rfq = await prisma.rfq.create({
       data: {
         title,
@@ -20,49 +22,42 @@ export const createRfq = async (req, res) => {
         createdById: req.user.id,
         status: 'OPEN',
         items: {
-          create: items.map(item => ({
+          create: parsedItems.map(item => ({
             productName: item.productName,
             quantity: item.quantity,
             unit: item.unit,
-            notes: item.notes
+            notes: item.notes,
           }))
         },
-        vendors: vendorIds && vendorIds.length > 0 ? {
-          create: vendorIds.map(vId => ({
-            vendorId: vId,
-            inviteStatus: 'INVITED'
+        vendors: parsedVendorIds.length > 0 ? {
+          create: parsedVendorIds.map(vId => ({ vendorId: vId, inviteStatus: 'INVITED' }))
+        } : undefined,
+        attachments: req.files?.length > 0 ? {
+          create: req.files.map(file => ({
+            fileUrl: file.path,
+            filename: file.originalname,
           }))
-        } : undefined
+        } : undefined,
       },
       include: {
         items: true,
-        vendors: {
-          include: {
-            vendor: { include: { org: true } }
-          }
-        },
-        org: true 
+        attachments: true,
+        vendors: { include: { vendor: { include: { org: true } } } },
+        org: true,
       }
     });
 
-    // 2. Trigger Emails to Vendors
-    if (rfq.vendors && rfq.vendors.length > 0) {
+    if (rfq.vendors?.length > 0) {
       rfq.vendors.forEach(async (rfqVendor) => {
         try {
           const vendorAdmin = await prisma.user.findFirst({
             where: { orgId: rfqVendor.vendor.orgId, role: 'VENDOR' }
           });
-
           if (vendorAdmin) {
-            await sendRfqInvitationEmail(
-              vendorAdmin.email,
-              rfq.title,
-              rfq.deadline,
-              rfq.org.name
-            );
+            await sendRfqInvitationEmail(vendorAdmin.email, rfq.title, rfq.deadline, rfq.org.name);
           }
         } catch (emailErr) {
-          console.error("Non-fatal: Failed to send RFQ email", emailErr);
+          console.error('Non-fatal: Failed to send RFQ email', emailErr);
         }
       });
     }
@@ -123,6 +118,7 @@ export const getRfqById = async (req, res) => {
       where: { id: req.params.id },
       include: {
         items: true,
+        attachments: true,
         vendors: {
           include: {
             vendor: { include: { org: { select: { name: true } } } }

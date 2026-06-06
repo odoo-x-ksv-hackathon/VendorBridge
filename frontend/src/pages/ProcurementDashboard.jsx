@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -12,48 +12,18 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import Sidebar from '../components/Sidebar';
+import AddMemberModal from '../components/AddMemberModal';
+import api from '../lib/axios';
 
-const stats = [
-  {
-    label: "Active RFQ's",
-    value: '12',
-    icon: FileText,
-    color: '#3b82f6',
-    bg: '#eff6ff',
-    trend: '+3 this week',
-  },
-  {
-    label: 'Pending Approvals',
-    value: '5',
-    icon: Clock,
-    color: '#f59e0b',
-    bg: '#fffbeb',
-    trend: '2 urgent',
-  },
-  {
-    label: "PO's This Month",
-    value: '₹2.3L',
-    icon: ShoppingCart,
-    color: '#10b981',
-    bg: '#ecfdf5',
-    trend: '+12% vs last month',
-  },
-  {
-    label: 'Overdue Invoices',
-    value: '3',
-    icon: AlertCircle,
-    color: '#ef4444',
-    bg: '#fef2f2',
-    trend: 'Action needed',
-  },
+// initial placeholders will be replaced by API data
+let defaultStats = [
+  { label: "Active RFQ's", value: '—', icon: FileText, color: '#3b82f6', bg: '#eff6ff', trend: '' },
+  { label: 'Pending Approvals', value: '—', icon: Clock, color: '#f59e0b', bg: '#fffbeb', trend: '' },
+  { label: "PO's This Month", value: '—', icon: ShoppingCart, color: '#10b981', bg: '#ecfdf5', trend: '' },
+  { label: 'Overdue Invoices', value: '—', icon: AlertCircle, color: '#ef4444', bg: '#fef2f2', trend: '' },
 ];
 
-const recentPOs = [
-  { id: 'PO-001', vendor: 'Infra Supplies', amount: '₹87,000', status: 'Approved' },
-  { id: 'PO-002', vendor: 'Tech Core Ltd', amount: '₹1,40,000', status: 'Pending' },
-  { id: 'PO-003', vendor: 'OfficeNeed Co', amount: '₹34,900', status: 'Draft' },
-  { id: 'PO-004', vendor: 'Globe Traders', amount: '₹62,500', status: 'Approved' },
-];
+const recentPOs = [];
 
 const statusConfig = {
   Approved: { color: '#10b981', bg: '#d1fae5' },
@@ -61,27 +31,52 @@ const statusConfig = {
   Draft: { color: '#6b7280', bg: '#f3f4f6' },
 };
 
-const spendingData = [
-  { month: 'Jan', amount: 1.2 },
-  { month: 'Feb', amount: 1.8 },
-  { month: 'Mar', amount: 1.4 },
-  { month: 'Apr', amount: 2.1 },
-  { month: 'May', amount: 1.9 },
-  { month: 'Jun', amount: 2.3 },
-];
-
-const categoryData = [
-  { name: 'IT Equipment', value: 40, color: '#3b82f6' },
-  { name: 'Office Supplies', value: 25, color: '#10b981' },
-  { name: 'Infrastructure', value: 20, color: '#f59e0b' },
-  { name: 'Others', value: 15, color: '#8b5cf6' },
-];
+const spendingData = [];
+const categoryData = [];
 
 export default function ProcurementDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [stats, setStats] = useState(defaultStats);
+  const [pos, setPos] = useState(recentPOs);
+  const [spend, setSpend] = useState(spendingData);
+  const [categories, setCategories] = useState(categoryData);
+  const [loading, setLoading] = useState(true);
   const userInitials = user?.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() ?? '??';
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchDashboard = async () => {
+      try {
+        const res = await api.get('/dashboard');
+        const d = res.data;
+
+        if (!mounted) return;
+
+        setStats([
+          { label: "Active RFQ's", value: String(d.activeRfqs ?? 0), icon: FileText, color: '#3b82f6', bg: '#eff6ff', trend: '' },
+          { label: 'Pending Approvals', value: String(d.pendingApprovals ?? 0), icon: Clock, color: '#f59e0b', bg: '#fffbeb', trend: '' },
+          { label: "PO's This Month", value: `₹${Number(d.poThisMonth ?? 0)}`, icon: ShoppingCart, color: '#10b981', bg: '#ecfdf5', trend: '' },
+          { label: 'Overdue Invoices', value: String(d.overdueInvoices ?? 0), icon: AlertCircle, color: '#ef4444', bg: '#fef2f2', trend: '' },
+        ]);
+
+        setPos((d.recentPOs || []).map(p => ({ id: p.poNumber || p.id, vendor: p.vendor?.org?.name ?? p.vendor?.org?.name ?? (p.vendor?.org?.name ?? 'Unknown'), amount: `₹${Number(p.totalAmount ?? p.totalAmount ?? 0)}`, status: p.status } )));
+
+        setSpend((d.spendingData || []).map(s => ({ month: s.month, amount: Number(s.amount) })));
+
+        setCategories(d.categoryData || []);
+      } catch (err) {
+        console.error('Failed to fetch dashboard', err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div
@@ -90,6 +85,8 @@ export default function ProcurementDashboard() {
     >
       {sidebarOpen && <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />}
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {showAddMember && <AddMemberModal onClose={() => setShowAddMember(false)} />}
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
@@ -110,6 +107,14 @@ export default function ProcurementDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowAddMember(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90 active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)' }}
+            >
+              <UserPlus size={13} />
+              Add Member
+            </button>
             <button className="relative p-2 rounded-lg hover:bg-gray-50 transition-colors">
               <Bell size={18} className="text-gray-500" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
@@ -179,7 +184,7 @@ export default function ProcurementDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {recentPOs.map((po, i) => (
+                    {pos.map((po, i) => (
                       <tr
                         key={po.id}
                         className="border-t border-gray-50 hover:bg-gray-50/70 transition-colors cursor-pointer"
@@ -193,8 +198,8 @@ export default function ProcurementDashboard() {
                           <span
                             className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
                             style={{
-                              color: statusConfig[po.status].color,
-                              background: statusConfig[po.status].bg,
+                              color: statusConfig[po.status]?.color ?? '#6b7280',
+                              background: statusConfig[po.status]?.bg ?? '#f3f4f6',
                             }}
                           >
                             {po.status}
@@ -216,7 +221,7 @@ export default function ProcurementDashboard() {
               <div className="p-4 space-y-4">
                 <ResponsiveContainer width="100%" height={110}>
                   <LineChart
-                    data={spendingData}
+                    data={spend}
                     margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
                   >
                     <XAxis
@@ -255,7 +260,7 @@ export default function ProcurementDashboard() {
                   <ResponsiveContainer width={80} height={80}>
                     <PieChart>
                       <Pie
-                        data={categoryData}
+                        data={categories}
                         cx="50%"
                         cy="50%"
                         innerRadius={22}
@@ -263,14 +268,14 @@ export default function ProcurementDashboard() {
                         dataKey="value"
                         strokeWidth={0}
                       >
-                        {categoryData.map((entry, index) => (
+                        {categories.map((entry, index) => (
                           <Cell key={index} fill={entry.color} />
                         ))}
                       </Pie>
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="flex flex-col gap-1 flex-1">
-                    {categoryData.map((d) => (
+                    {categories.map((d) => (
                       <div key={d.name} className="flex items-center gap-1.5">
                         <div
                           className="w-2 h-2 rounded-full shrink-0"

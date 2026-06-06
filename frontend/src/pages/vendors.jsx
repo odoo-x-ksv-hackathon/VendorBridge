@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import Sidebar from '../components/Sidebar';
-import { useNavigate } from 'react-router-dom';
 
 const statusConfig = {
   Active: { color: '#10b981', bg: '#d1fae5', dot: '#10b981' },
@@ -99,7 +98,6 @@ function SectionTable({ title, headers, rows, empty }) {
 }
 
 export default function VendorsPage() {
-  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
   const [search, setSearch] = useState('');
@@ -162,7 +160,10 @@ export default function VendorsPage() {
     }
   };
 
-  const categories = ['All', ...Array.from(new Set(vendors.map(v => v.category).filter(Boolean))).sort()];
+  const categories = [
+    'All',
+    ...Array.from(new Set(vendors.map((v) => v.category).filter(Boolean))).sort(),
+  ];
 
   const filtered = vendors.filter((v) => {
     const matchTab = activeTab === 'All' || v.status === activeTab;
@@ -179,14 +180,14 @@ export default function VendorsPage() {
   });
 
   const handleExport = () => {
-    const rows = filtered.map(v => ({
+    const rows = filtered.map((v) => ({
       'Company Name': v.name,
-      'Category': v.category || '',
+      Category: v.category || '',
       'GST Number': v.gst || '',
-      'Contact': v.contact || '',
-      'Email': v.email || '',
-      'Status': v.status,
-      'Since': v.since,
+      Contact: v.contact || '',
+      Email: v.email || '',
+      Status: v.status,
+      Since: v.since,
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -269,12 +270,22 @@ export default function VendorsPage() {
             <div className="flex gap-2 shrink-0">
               <select
                 value={categoryFilter}
-                onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}
+                onChange={(e) => {
+                  setCategoryFilter(e.target.value);
+                  setPage(1);
+                }}
                 className="px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
               >
-                {categories.map(c => <option key={c} value={c}>{c === 'All' ? 'All Categories' : c}</option>)}
+                {categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c === 'All' ? 'All Categories' : c}
+                  </option>
+                ))}
               </select>
-              <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors">
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+              >
                 <Download size={14} />
                 <span className="hidden sm:inline">Export</span>
               </button>

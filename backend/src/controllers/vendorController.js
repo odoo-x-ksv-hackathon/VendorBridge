@@ -32,7 +32,7 @@ export const registerVendor = async (req, res) => {
       });
 
       const vendor = await tx.vendor.create({
-        data: { orgId: org.id, category },
+        data: { orgId: org.id, category, addedByOrgId: req.user.orgId },
       });
 
       return { org, user, vendor };
@@ -58,9 +58,10 @@ export const registerVendor = async (req, res) => {
 
 // --- Get Vendor By ID (with all related data) ---
 export const getVendorById = async (req, res) => {
+  if (req.user.role === 'VENDOR') return res.status(403).json({ error: 'Access denied' });
   try {
-    const vendor = await prisma.vendor.findUnique({
-      where: { id: req.params.id },
+    const vendor = await prisma.vendor.findFirst({
+      where: { id: req.params.id, addedByOrgId: req.user.orgId },
       include: {
         org: {
           select: {
@@ -138,8 +139,10 @@ export const getVendorById = async (req, res) => {
 
 // --- Get All Vendors ---
 export const getVendors = async (req, res) => {
+  if (req.user.role === 'VENDOR') return res.status(403).json({ error: 'Access denied' });
   try {
     const vendors = await prisma.vendor.findMany({
+      where: { addedByOrgId: req.user.orgId },
       include: {
         org: {
           select: {
