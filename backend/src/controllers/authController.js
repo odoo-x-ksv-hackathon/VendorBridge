@@ -67,10 +67,14 @@ export const login = async (req, res) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Save refresh token to user record & update last login
+    // Save refresh token, update last login, and mark invite as accepted on first login
     await prisma.user.update({
       where: { id: user.id },
-      data: { refreshToken, lastLoginAt: new Date() },
+      data: {
+        refreshToken,
+        lastLoginAt: new Date(),
+        ...(user.inviteStatus === 'PENDING' && { inviteStatus: 'ACCEPTED' }),
+      },
     });
 
     // Set cookies
