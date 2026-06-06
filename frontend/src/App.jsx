@@ -4,6 +4,8 @@ import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import ProcurementDashboard from './pages/procurementDashboard';
+import VendorsPage from './pages/vendors';
 
 function App() {
   return (
@@ -20,7 +22,22 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="/procurement-dashboard"
+            element={
+              <PrivateRoute>
+                <ProcurementDashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/vendors"
+            element={
+              <PrivateRoute>
+                <VendorsPage />
+              </PrivateRoute>
+            }
+          />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
