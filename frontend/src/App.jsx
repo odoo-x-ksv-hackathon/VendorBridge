@@ -3,12 +3,13 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import ProcurementDashboard from './pages/procurementDashboard';
+import ProcurementDashboard from './pages/ProcurementDashboard';
 import VendorsPage from './pages/vendors';
 import RFQPage from './pages/RfqPage';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorRFQsPage from './pages/VendorRFQsPage';
+import SubmitQuotationPage from './pages/SubmitQuotationPage';
+import QuotationComparisonPage from './pages/QuotationComparisonPage';
 
 function RoleRedirect() {
   const { user, loading } = useAuth();
@@ -31,6 +32,8 @@ function App() {
           <Route path="/rfqs" element={<PrivateRoute><RFQPage /></PrivateRoute>} />
           <Route path="/vendor-dashboard" element={<PrivateRoute><VendorDashboard /></PrivateRoute>} />
           <Route path="/vendor-rfqs" element={<PrivateRoute><VendorRFQsPage /></PrivateRoute>} />
+          <Route path="/quotations/:rfqId/submit" element={<PrivateRoute><SubmitQuotationPage /></PrivateRoute>} />
+          <Route path="/rfqs/:rfqId/comparison" element={<PrivateRoute><QuotationComparisonPage /></PrivateRoute>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
