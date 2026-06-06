@@ -2,14 +2,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, FileText, ClipboardList, CheckSquare,
-  ShoppingCart, Receipt, BarChart2, Activity, ChevronRight, X,
+  ShoppingCart, Receipt, BarChart2, Activity, ChevronRight, X, LogOut,
 } from 'lucide-react';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/procurement-dashboard' },
   { label: 'Vendors', icon: Users, path: '/vendors' },
   { label: "RFQ's", icon: FileText, path: '/rfqs' },
-  { label: 'Quotations', icon: ClipboardList, path: null },
+  { label: 'Quotations', icon: ClipboardList, path: '/quotations' },
   { label: 'Approvals', icon: CheckSquare, path: null },
   { label: 'Purchase Orders', icon: ShoppingCart, path: null },
   { label: 'Invoices', icon: Receipt, path: null },
@@ -19,10 +19,11 @@ const navItems = [
 
 export default function Sidebar({ open, onClose }) {
   const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const userInitials = user?.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() ?? '??';
+  const { user, logout } = useAuth();
   const { pathname } = useLocation();
+  const userInitials = user?.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() ?? '??';
+
+  const handleLogout = async () => { await logout(); navigate('/login'); };
 
   return (
     <aside className={`fixed lg:static inset-y-0 left-0 z-30 w-56 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
@@ -53,7 +54,7 @@ export default function Sidebar({ open, onClose }) {
         })}
       </nav>
 
-      <div className="px-4 py-4 border-t border-gray-100">
+      <div className="px-4 py-4 border-t border-gray-100 space-y-2">
         <div className="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3 py-2.5">
           <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
             style={{ background: 'linear-gradient(135deg, #1d4ed8, #06b6d4)' }}>{userInitials}</div>
@@ -62,6 +63,10 @@ export default function Sidebar({ open, onClose }) {
             <p className="text-[10px] text-gray-400 truncate">{user?.email ?? '—'}</p>
           </div>
         </div>
+        <button onClick={handleLogout}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors">
+          <LogOut size={14} />Log out
+        </button>
       </div>
     </aside>
   );

@@ -25,111 +25,63 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
-      {/* Background grid */}
-      <div
-        className="fixed inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            'linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }}
-      />
+    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }} className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        {/* Brand */}
+        <div className="flex items-center gap-2 mb-8 justify-center">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold"
+            style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)' }}>VB</div>
+          <span className="font-bold text-gray-900 text-sm tracking-tight">VendorBridge</span>
+        </div>
 
-      <div className="relative w-full max-w-md">
-        {/* Glow accent */}
-        <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative bg-slate-900 border border-slate-700/60 rounded-2xl shadow-2xl overflow-hidden">
-          {/* Header stripe */}
-          <div className="h-1 bg-linear-to-r from-emerald-400 via-teal-400 to-cyan-400" />
-
-          <div className="px-8 pt-8 pb-10">
-            {/* Brand */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" />
-                <span
-                  className="text-xs font-semibold tracking-[0.25em] text-emerald-400 uppercase"
-                  style={{ fontFamily: "'DM Mono', monospace" }}
-                >
-                  VendorBridge
-                </span>
-              </div>
-              <h1
-                className="text-3xl font-bold text-white mt-2"
-                style={{ fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em' }}
-              >
-                Welcome back
-              </h1>
-              <p className="text-slate-400 text-sm mt-1">Sign in to your organisation.</p>
-            </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="h-1" style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)' }} />
+          <div className="px-7 pt-7 pb-8">
+            <h1 className="text-xl font-bold text-gray-900 leading-tight">Welcome back</h1>
+            <p className="text-xs text-gray-500 mt-1">Sign in to your organisation.</p>
 
             {error && (
-              <div className="mb-5 flex items-start gap-3 bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3">
-                <span className="text-red-400 text-lg leading-none mt-0.5">✕</span>
-                <p className="text-red-300 text-sm">{error}</p>
+              <div className="mt-4 px-3 py-2.5 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600">
+                {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Email */}
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
               <div>
-                <label
-                  className="block text-xs font-medium text-slate-400 mb-1.5 tracking-wide uppercase"
-                  style={{ fontFamily: "'DM Mono', monospace" }}
-                >
-                  Email
-                </label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Email</label>
                 <input
                   type="email"
                   placeholder="tony@stark.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full bg-slate-800 border border-slate-700 text-white placeholder-slate-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 transition"
-                  style={{ fontFamily: "'Sora', sans-serif" }}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
                 />
               </div>
-
-              {/* Password */}
               <div>
-                <label
-                  className="block text-xs font-medium text-slate-400 mb-1.5 tracking-wide uppercase"
-                  style={{ fontFamily: "'DM Mono', monospace" }}
-                >
-                  Password
-                </label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Password</label>
                 <input
                   type="password"
                   placeholder="••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full bg-slate-800 border border-slate-700 text-white placeholder-slate-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 transition"
-                  style={{ fontFamily: "'Sora', sans-serif" }}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
                 />
               </div>
-
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-semibold rounded-lg py-2.5 text-sm transition-all duration-200 tracking-wide"
-                style={{ fontFamily: "'Sora', sans-serif" }}
+                className="w-full py-2.5 text-sm font-semibold text-white rounded-lg disabled:opacity-60 transition-all hover:opacity-90 active:scale-95"
+                style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)' }}
               >
                 {loading ? 'Signing in…' : 'Sign In'}
               </button>
             </form>
 
-            <p
-              className="mt-6 text-center text-slate-500 text-sm"
-              style={{ fontFamily: "'Sora', sans-serif" }}
-            >
+            <p className="mt-5 text-center text-xs text-gray-500">
               Don't have an account?{' '}
-              <Link
-                to="/register"
-                className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
-              >
+              <Link to="/register" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">
                 Create organisation
               </Link>
             </p>
