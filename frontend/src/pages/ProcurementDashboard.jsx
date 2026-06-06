@@ -1,51 +1,17 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  ClipboardList,
-  CheckSquare,
-  ShoppingCart,
-  Receipt,
-  BarChart2,
-  Activity,
-  Plus,
-  UserPlus,
-  Eye,
-  TrendingUp,
-  AlertCircle,
-  Clock,
-  Menu,
-  X,
-  Bell,
-  ChevronRight,
-  ArrowUpRight,
+  FileText, ClipboardList, CheckSquare,
+  ShoppingCart, Receipt, BarChart2,
+  Plus, UserPlus, Eye, TrendingUp, AlertCircle, Clock,
+  Menu, Bell, ArrowUpRight, ChevronRight,
 } from 'lucide-react';
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
+  LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts';
-
-const navItems = [
-  { label: 'Dashboard', icon: LayoutDashboard, active: true },
-  { label: 'Vendors', icon: Users },
-  { label: "RFQ's", icon: FileText },
-  { label: 'Quotations', icon: ClipboardList },
-  { label: 'Approvals', icon: CheckSquare },
-  { label: 'Purchase Orders', icon: ShoppingCart },
-  { label: 'Invoices', icon: Receipt },
-  { label: 'Reports', icon: BarChart2 },
-  { label: 'Activity', icon: Activity },
-];
+import Sidebar from '../components/Sidebar';
 
 const stats = [
   {
@@ -112,93 +78,18 @@ const categoryData = [
 ];
 
 export default function ProcurementDashboard() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState('Dashboard');
+  const userInitials = user?.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() ?? '??';
 
   return (
     <div
       style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}
       className="flex h-screen bg-gray-50 overflow-hidden"
     >
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-20 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed lg:static inset-y-0 left-0 z-30 w-56 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
-      >
-        {/* Logo */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-              style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)' }}
-            >
-              VB
-            </div>
-            <span className="font-bold text-gray-900 text-sm tracking-tight">VendorBridge</span>
-          </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-gray-400 hover:text-gray-600"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 py-4 px-3 overflow-y-auto">
-          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-2 mb-3">
-            Main Menu
-          </p>
-          {navItems.map(({ label, icon: Icon }) => (
-            <button
-              key={label}
-              onClick={() => {
-                setActiveNav(label);
-                setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-medium transition-all duration-150 group ${
-                activeNav === label
-                  ? 'text-blue-700 bg-blue-50'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <Icon
-                size={16}
-                className={
-                  activeNav === label ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
-                }
-              />
-              {label}
-              {activeNav === label && <ChevronRight size={14} className="ml-auto text-blue-400" />}
-            </button>
-          ))}
-        </nav>
-
-        {/* User badge */}
-        <div className="px-4 py-4 border-t border-gray-100">
-          <div className="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3 py-2.5">
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-              style={{ background: 'linear-gradient(135deg, #1d4ed8, #06b6d4)' }}
-            >
-              PO
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-gray-800 truncate">Procurement Officer</p>
-              <p className="text-[10px] text-gray-400 truncate">officer@company.com</p>
-            </div>
-          </div>
-        </div>
-      </aside>
+      {sidebarOpen && <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
@@ -214,7 +105,7 @@ export default function ProcurementDashboard() {
             <div>
               <h1 className="text-lg font-bold text-gray-900 leading-tight">Dashboard</h1>
               <p className="text-xs text-gray-500">
-                Welcome back, Procurement Officer — Today's Overview
+                Welcome back, {user?.name ?? 'there'} — Today's Overview
               </p>
             </div>
           </div>
@@ -223,11 +114,9 @@ export default function ProcurementDashboard() {
               <Bell size={18} className="text-gray-500" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-              style={{ background: 'linear-gradient(135deg, #1d4ed8, #06b6d4)' }}
-            >
-              PO
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+              style={{ background: 'linear-gradient(135deg, #1d4ed8, #06b6d4)' }}>
+              {userInitials}
             </div>
           </div>
         </header>

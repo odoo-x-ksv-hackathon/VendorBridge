@@ -96,9 +96,10 @@ router.post('/login', async (req, res) => {
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { 
+      data: {
         refreshToken,
-        lastLoginAt: new Date() 
+        lastLoginAt: new Date(),
+        ...(user.inviteStatus === 'PENDING' && { inviteStatus: 'ACCEPTED' }),
       },
     });
 

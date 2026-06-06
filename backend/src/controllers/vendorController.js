@@ -4,7 +4,7 @@ import {sendVendorWelcomeEmail} from '../services/emailServices.js';
 
 // --- Register a New Vendor ---
 export const registerVendor = async (req, res) => {
-  const { companyName, contactName, email, gstNumber, category } = req.body;
+  const { companyName, contactName, email, phone, gstNumber, category } = req.body;
 
   if (!companyName || !email || !contactName) {
     return res.status(400).json({ error: 'Company Name, Contact Name, and Email are required' });
@@ -24,7 +24,7 @@ export const registerVendor = async (req, res) => {
     // 3. Database Transaction
     const result = await prisma.$transaction(async (tx) => {
       const org = await tx.organization.create({
-        data: { name: companyName, type: 'VENDOR', gstNumber },
+        data: { name: companyName, type: 'VENDOR', gstNumber, phone },
       });
 
       const user = await tx.user.create({
@@ -56,24 +56,125 @@ export const registerVendor = async (req, res) => {
   }
 };
 
+// --- Get Vendor By ID (with all related data) ---
+export const getVendorById = async (req, res) => {
+  try {
+    const vendor = await prisma.vendor.findUnique({
+      where: { id: req.params.id },
+      include: {
+        org: {
+          select: {
+            name: true, gstNumber: true, phone: true, address: true,
+            users: {
+              where: { role: 'VENDOR' },
+              select: { name: true, email: true, inviteStatus: true, lastLoginAt: true },
+              take: 1,
+            },
+          },
+        },
+        rfqVendors: {
+          include: {
+            rfq: { select: { id: true, title: true, status: true, deadline: true, createdAt: true } },
+          },
+          orderBy: { invitedAt: 'desc' },
+        },
+        quotations: {
+          select: {
+            id: true, totalAmount: true, status: true, deliveryDays: true, submittedAt: true,
+            rfq: { select: { title: true } },
+            approvals: { select: { status: true, remarks: true, actionedAt: true } },
+          },
+          orderBy: { submittedAt: 'desc' },
+        },
+        purchaseOrders: {
+          select: {
+            id: true, poNumber: true, totalAmount: true, status: true, createdAt: true,
+            invoice: { select: { invoiceNumber: true, totalAmount: true, status: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!vendor) return res.status(404).json({ error: 'Vendor not found' });
+
+    const user = vendor.org.users[0];
+    let status = 'Active';
+    if (!vendor.isActive) status = 'Blocked';
+    else if (user?.inviteStatus === 'PENDING') status = 'Pending';
+
+    res.json({
+      id: vendor.id,
+      companyName: vendor.org.name,
+      contactName: user?.name ?? '',
+      email: user?.email ?? '',
+      contact: vendor.org.phone ?? '',
+      gstNumber: vendor.org.gstNumber ?? '',
+      address: vendor.org.address ?? '',
+      category: vendor.category ?? '',
+      rating: vendor.rating,
+      since: new Date(vendor.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      lastLogin: user?.lastLoginAt ?? null,
+      status,
+      rfqs: vendor.rfqVendors.map(r => ({
+        id: r.rfq.id, title: r.rfq.title, status: r.rfq.status,
+        deadline: r.rfq.deadline, inviteStatus: r.inviteStatus, invitedAt: r.invitedAt,
+      })),
+      quotations: vendor.quotations.map(q => ({
+        id: q.id, rfqTitle: q.rfq.title, totalAmount: q.totalAmount,
+        status: q.status, deliveryDays: q.deliveryDays, submittedAt: q.submittedAt,
+        approvals: q.approvals,
+      })),
+      purchaseOrders: vendor.purchaseOrders.map(po => ({
+        id: po.id, poNumber: po.poNumber, totalAmount: po.totalAmount,
+        status: po.status, createdAt: po.createdAt, invoice: po.invoice,
+      })),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch vendor details' });
+  }
+};
+
 // --- Get All Vendors ---
 export const getVendors = async (req, res) => {
   try {
     const vendors = await prisma.vendor.findMany({
       include: {
-        org: { select: { name: true, gstNumber: true, isActive: true } }
+        org: {
+          select: {
+            name: true,
+            gstNumber: true,
+            phone: true,
+            users: {
+              where: { role: 'VENDOR' },
+              select: { email: true, inviteStatus: true },
+              take: 1,
+            },
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
 
-    const formattedVendors = vendors.map(v => ({
-      id: v.id,
-      orgId: v.orgId,
-      companyName: v.org.name,
-      category: v.category,
-      gstNumber: v.org.gstNumber,
-      status: v.isActive ? 'Active' : 'Inactive'
-    }));
+    const formattedVendors = vendors.map(v => {
+      const user = v.org.users[0];
+      let status = 'Active';
+      if (!v.isActive) status = 'Blocked';
+      else if (user?.inviteStatus === 'PENDING') status = 'Pending';
+
+      return {
+        id: v.id,
+        orgId: v.orgId,
+        companyName: v.org.name,
+        category: v.category ?? '',
+        gstNumber: v.org.gstNumber ?? '',
+        contact: v.org.phone ?? '',
+        email: user?.email ?? '',
+        since: new Date(v.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        status,
+      };
+    });
 
     res.json(formattedVendors);
   } catch (err) {
