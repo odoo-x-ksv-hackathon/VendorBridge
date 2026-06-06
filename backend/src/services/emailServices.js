@@ -146,10 +146,47 @@ export const sendInvoiceEmail = async (targetEmail, invoiceNumber, poNumber, tot
     console.error('Error sending invoice email:', error);
   }
 };
+const sendVendorWelcomeEmail = async (vendorEmail, contactName, orgName, tempPassword) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_FROM || 'no-reply@vendorbridge.local',
+      to: vendorEmail,
+      subject: `Welcome to VendorBridge - Invited by ${orgName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px;">
+          <h2 style="color: #2563eb;">Welcome, ${contactName}!</h2>
+          <p><strong>${orgName}</strong> has registered your company on the VendorBridge procurement network.</p>
+          
+          <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin-top: 0;"><strong>Your Login Credentials:</strong></p>
+            <p><strong>Email:</strong> ${vendorEmail}</p>
+            <p><strong>Temporary Password:</strong> <span style="background-color: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-family: monospace;">${tempPassword}</span></p>
+          </div>
+          
+          <p style="color: #dc2626; font-size: 14px;"><em>Please log in and change your password immediately.</em></p>
+          
+          <div style="margin: 30px 0;">
+            <a href="http://localhost:5173/login" 
+               style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+              Login to Vendor Portal
+            </a>
+          </div>
+        </div>
+      `,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Vendor welcome email sent:', info.messageId);
+    return info;
+  } catch (error) {
+    console.error('Error sending vendor welcome email:', error);
+  }
+};
 
 export default {
   sendWelcomeEmail,
   sendPasswordResetEmail,
   sendRfqInvitationEmail,
   sendInvoiceEmail,
+  sendVendorWelcomeEmail
 };
